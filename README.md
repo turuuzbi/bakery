@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Iden Coffee & Bakery: demo site
 
-## Getting Started
+One-page menu and ordering site for Iden Coffee & Bakery (Хархорин хороолол, Улаанбаатар).
+Customers browse the menu, build a basket, and send the order to the shop's Viber already written out.
 
-First, run the development server:
+Next.js 16 (App Router, Cache Components), TypeScript, Tailwind CSS 4. No backend: the whole page is prerendered.
+
+## Where to edit
+
+| What | File |
+| --- | --- |
+| All UI copy (Mongolian) and the Viber order message template | `src/content/site.ts` |
+| Menu items, prices, categories, tags, "Онцлох" order | `src/data/menu.ts` |
+| Hours, phones, Viber number, address, map link, Instagram | `src/data/business.ts` |
+| Colours, fonts, motion | `src/app/globals.css`, `src/app/layout.tsx` |
+| Photos | `public/menu/*.jpg`, hero inset `public/hero/` |
+
+Prices are numbers in tögrög: `price: 6500` renders as `6,500₮`. `null` shows "Үнэ лавлах".
+An item with `image: null` gets the green logo placeholder.
+
+## Placeholders to confirm with the owner
+
+Search the code for `TODO:`.
+
+- **Prices:** none are on Instagram, so every price is `null`.
+- **Opening hours:** the example hours from the brief (Да–Ба 08:00–20:00, Бя–Ня 09:00–18:00). The "Одоо нээлттэй" badge uses them.
+- **Coffee drinks:** Американо, Латте and Капучино are stand-ins. Replace them with the real coffee menu.
+- **Matcha cookie:** no photo yet.
+- **"Хамгийн их зарагддаг" tags:** inferred from Instagram likes (tiramisu, carrot cake).
+- **Delivery:** not confirmed. Set `deliveryOffered: false` to hide the option.
+- **Map link:** a text search. Ask for the exact Google Maps pin.
+- **Photos:** Instagram's 640px exports with text baked in. Original high-res photos will look much sharper.
+- **Logo:** 150×150 is the only size available. A vector or large PNG would help the favicon and share image.
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # must pass with zero type errors
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy to Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Push this folder to a GitHub repo.
+2. On vercel.com: **Add New → Project**, import the repo, keep the defaults (framework: Next.js), **Deploy**.
+3. Optional: when you add a custom domain, set `NEXT_PUBLIC_SITE_URL=https://your-domain` in the project's environment variables so share links and structured data use it. Without it, the Vercel production URL is used automatically.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Or from the terminal: `npx vercel` (preview), then `npx vercel --prod`.
 
-## Learn More
+The share preview image (`/opengraph-image`) is generated at build time from the logo, two photos and the fonts in `src/assets/og/`.
 
-To learn more about Next.js, take a look at the following resources:
+## Performance notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Measure Lighthouse on the deployed URL (pagespeed.web.dev). `next start` locally serves HTTP/1.1 with gzip, which scores several points lower than Vercel's HTTP/2 + Brotli.
+- The hero photo is the LCP element and is preloaded. Keep it small.
+- Hero visuals avoid `box-shadow` and SVG filters, which are slow to rasterize on phones without GPU raster. The paper grain is a 7 KB PNG tile.
+- Sections below the hero use `content-visibility: auto` (`defer-render` in `globals.css`), so their layout and images wait until they're near the screen.

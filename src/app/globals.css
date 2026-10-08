@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+/* Fonts come from next/font (see layout.tsx) as CSS variables on <html>. */
+@theme inline {
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  /* Brand green sampled from the logo. */
+  --color-forest: #316743;
+  --color-forest-deep: #234d32;
+  --color-forest-night: #1a3a26;
+  --color-cream: #f6f0e4;
+  --color-cream-soft: #fbf8f1;
+  --color-sand: #e8dfcd;
+  --color-ink: #1f2a22;
+  --color-ink-soft: #4a5a4e;
+  --color-matcha: #a8c49a;
+  --color-matcha-soft: #e2ebd9;
+  --color-viber: #665cac;
+  --color-viber-deep: #554b98;
+
+  /* Modest blur radii: big blurred shadows are slow to rasterize on low-end phones. */
+  --shadow-soft: 0 1px 2px rgb(31 42 34 / 0.05), 0 6px 14px -8px rgb(31 42 34 / 0.2);
+  --shadow-lift: 0 2px 4px rgb(31 42 34 / 0.06), 0 14px 24px -14px rgb(31 42 34 / 0.34);
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-bump: bump 0.4s var(--ease-soft);
+  --animate-rise: rise 0.6s var(--ease-soft) both;
+
+  @keyframes bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+  @media (width >= 48rem) {
+    padding-left: max(2rem, env(safe-area-inset-left));
+    padding-right: max(2rem, env(safe-area-inset-right));
+  }
+}
+
+/*
+ * Below-the-fold sections: the browser skips their layout, paint and image loads until
+ * they near the viewport. `auto` remembers the real height once a section has rendered.
+ * This also adds paint containment, so leave a little padding for shadows at the edges.
+ */
+@utility defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 5rem;
+    scrollbar-gutter: stable;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  body {
+    min-height: 100dvh;
+    color: var(--color-ink);
+    background-color: var(--color-cream);
+    /* Paper grain: a 7 KB pre-rendered tile. (An SVG feTurbulence filter looks the
+       same but is computed pixel by pixel, which delayed first paint by ~120 ms.) */
+    background-image: url("/grain.png");
+    background-size: 96px 96px;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-matcha);
+    color: var(--color-ink);
+  }
+
+  /* Never let a stray wide element create horizontal scroll. */
+  main,
+  footer {
+    overflow-x: clip;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Scroll-linked fade-up. Pure CSS; content stays visible where unsupported. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+
+    /* The hero seal turns as the page scrolls, and rests when the page does. */
+    .stamp-spin {
+      animation: stamp-turn linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes stamp-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Basket sheet (native <dialog>) ─────────────────────────────────── */
+
+.sheet {
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(100dvh - 2.5rem);
+  color: var(--color-ink);
+  background: var(--color-cream-soft);
+  border-radius: 1.75rem 1.75rem 0 0;
+  box-shadow: 0 -16px 48px rgb(31 42 34 / 0.22);
+  overflow: hidden;
+}
+
+.sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet::backdrop {
+  background: rgb(26 58 38 / 0);
+}
+
+.sheet[open]::backdrop {
+  background: rgb(26 58 38 / 0.45);
+}
+
+@media (width >= 48rem) {
+  .sheet {
+    margin: 0 0 0 auto;
+    width: 28rem;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 1.75rem 0 0 1.75rem;
+    box-shadow: -16px 0 48px rgb(31 42 34 / 0.22);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet,
+  .sheet::backdrop {
+    transition:
+      translate 0.42s var(--ease-soft),
+      background-color 0.3s ease,
+      overlay 0.42s allow-discrete,
+      display 0.42s allow-discrete;
+  }
+
+  .sheet:not([open]) {
+    translate: 0 100%;
+  }
+
+  @starting-style {
+    .sheet[open] {
+      translate: 0 100%;
+    }
+    .sheet[open]::backdrop {
+      background: rgb(26 58 38 / 0);
+    }
+  }
+
+  @media (width >= 48rem) {
+    .sheet:not([open]) {
+      translate: 100% 0;
+    }
+    @starting-style {
+      .sheet[open] {
+        translate: 100% 0;
+      }
+    }
+  }
+}
